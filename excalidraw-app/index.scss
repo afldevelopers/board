@@ -78,6 +78,16 @@
       color: var(--color-danger-text);
     }
   }
+
+  .help-icon,
+  .excalidraw-links,
+  [aria-label="Shortcuts"],
+  [aria-label="Shortcuts & help"],
+  .encrypted-icon,
+  .sidebar-trigger,
+  .footer-right .help-icon {
+    display: none !important;
+  }
 }
 
 .excalidraw-app.is-collaborating {
@@ -127,12 +137,4 @@
       color: black !important;
     }
   }
-}
-
-.help-icon,
-.excalidraw-links,
-[aria-label="Shortcuts"],
-.encrypted-icon,
-.sidebar-trigger {
-  display: none !important;
 }
