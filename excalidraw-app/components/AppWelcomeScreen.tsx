@@ -33,15 +33,7 @@ export const AppWelcomeScreen: React.FC<{
         return bit;
       });
   } else {
-    headingContent = (
-      <>
-        {t("welcomeScreen.app.center_heading")}
-        <br />
-        {t("welcomeScreen.app.center_heading_line2")}
-        <br />
-        {t("welcomeScreen.app.center_heading_line3")}
-      </>
-    );
+    headingContent = <>design with AFLdevelopers</>;
   }
 
   return (
@@ -52,7 +44,13 @@ export const AppWelcomeScreen: React.FC<{
       <WelcomeScreen.Hints.ToolbarHint />
       <WelcomeScreen.Hints.HelpHint />
       <WelcomeScreen.Center>
-        <WelcomeScreen.Center.Logo />
+        <svg width="80" height="80" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{borderRadius: 10}}>
+          <rect width="64" height="64" rx="10" fill="#111111"/>
+          <rect x="0" y="44" width="64" height="20" rx="0" fill="#cc0000"/>
+          <rect x="0" y="44" width="64" height="20" rx="10" fill="#cc0000"/>
+          <rect x="0" y="44" width="64" height="10" fill="#cc0000"/>
+          <text x="32" y="40" fontFamily="Arial Black, sans-serif" fontWeight="900" fontSize="26" fill="#ffffff" textAnchor="middle" letterSpacing="-1">AFL</text>
+        </svg>
         <WelcomeScreen.Center.Heading>
           {headingContent}
         </WelcomeScreen.Center.Heading>
