@@ -1,7 +1,6 @@
 import {
   Excalidraw,
   LiveCollaborationTrigger,
-  TTDDialogTrigger,
   CaptureUpdateAction,
   reconcileElements,
   useEditorInterface,
