@@ -87,6 +87,8 @@
   li:has([data-testid="mermaid-to-excalidraw"]),
   [aria-label="Library"],
   .layer-ui__sidebar-trigger,
+  button.sidebar-tab-trigger[aria-controls*="library"],
+  .Island.sidebar.default-sidebar,
   .help-icon,
   .excalidraw-links,
   [aria-label="Shortcuts"],
