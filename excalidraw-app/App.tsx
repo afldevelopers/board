@@ -903,8 +903,7 @@ const ExcalidrawWrapper = () => {
           }}
         />
 
-        <AppSidebar />
-
+        
         {errorMessage && (
           <ErrorDialog onClose={() => setErrorMessage("")}>
             {errorMessage}
