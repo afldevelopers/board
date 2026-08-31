@@ -42,9 +42,7 @@ import {
   GithubIcon,
   XBrandIcon,
   DiscordIcon,
-  ExcalLogo,
   usersIcon,
-  exportToPlus,
   share,
   youtubeIcon,
 } from "@excalidraw/excalidraw/components/icons";
@@ -145,7 +143,6 @@ import { ExcalidrawPlusIframeExport } from "./ExcalidrawPlusIframeExport";
 
 import "./index.scss";
 
-import { ExcalidrawPlusPromoBanner } from "./components/ExcalidrawPlusPromoBanner";
 import { AppSidebar } from "./components/AppSidebar";
 
 import type { CollabAPI } from "./collab/Collab";
@@ -171,17 +168,10 @@ declare global {
 
 let pwaEvent: BeforeInstallPromptEvent | null = null;
 
-// Adding a listener outside of the component as it may (?) need to be
-// subscribed early to catch the event.
-//
-// Also note that it will fire only if certain heuristics are met (user has
-// used the app for some time, etc.)
 window.addEventListener(
   "beforeinstallprompt",
   (event: BeforeInstallPromptEvent) => {
-    // prevent Chrome <= 67 from automatically showing the prompt
     event.preventDefault();
-    // cache for later use
     pwaEvent = event;
   },
 );
@@ -233,8 +223,6 @@ const initializeScene = async (opts: {
 
   let scene: Omit<
     RestoredDataState,
-    // we're not storing files in the scene database/localStorage, and instead
-    // fetch them async from a different store
     "files"
   > & {
     scrollToContent?: boolean;
@@ -250,11 +238,8 @@ const initializeScene = async (opts: {
   const isExternalScene = !!(id || jsonBackendMatch || roomLinkData);
   if (isExternalScene) {
     if (
-      // don't prompt if scene is empty
       !scene.elements.length ||
-      // don't prompt for collab scenes because we don't override local storage
       roomLinkData ||
-      // otherwise, prompt whether user wants to override current scene
       (await openConfirmModal(shareableLinkConfirmDialog))
     ) {
       if (jsonBackendMatch) {
@@ -273,8 +258,6 @@ const initializeScene = async (opts: {
           ),
           appState: restoreAppState(
             imported.appState,
-            // local appState when importing from backend to ensure we restore
-            // localStorage user settings which we do not persist on server.
             localDataState?.appState,
           ),
         };
@@ -284,15 +267,12 @@ const initializeScene = async (opts: {
         window.history.replaceState({}, APP_NAME, window.location.origin);
       }
     } else {
-      // https://github.com/excalidraw/excalidraw/issues/1919
       if (document.hidden) {
         return new Promise((resolve, reject) => {
           window.addEventListener(
             "focus",
             () => initializeScene(opts).then(resolve).catch(reject),
-            {
-              once: true,
-            },
+            { once: true },
           );
         });
       }
@@ -331,9 +311,6 @@ const initializeScene = async (opts: {
     const scene = await opts.collabAPI.startCollaboration(roomLinkData);
 
     return {
-      // when collaborating, the state may have already been updated at this
-      // point (we may have received updates from other clients), so reconcile
-      // elements and appState with existing state
       scene: {
         ...scene,
         appState: {
@@ -344,8 +321,6 @@ const initializeScene = async (opts: {
             },
             excalidrawAPI.getAppState(),
           ),
-          // necessary if we're invoking from a hashchange handler which doesn't
-          // go through App.initializeScene() that resets this flag
           isLoading: false,
         },
         elements: reconcileElements(
@@ -383,9 +358,6 @@ const ExcalidrawWrapper = () => {
 
   const editorInterface = useEditorInterface();
 
-  // initial state
-  // ---------------------------------------------------------------------------
-
   const initialStatePromiseRef = useRef<{
     promise: ResolvablePromise<ExcalidrawInitialDataState | null>;
   }>({ promise: null! });
@@ -398,7 +370,6 @@ const ExcalidrawWrapper = () => {
 
   useEffect(() => {
     trackEvent("load", "frame", getFrame());
-    // Delayed so that the app has a time to load the latest SW
     setTimeout(() => {
       trackEvent("load", "version", getVersion());
     }, VERSION_TIMEOUT);
@@ -414,7 +385,6 @@ const ExcalidrawWrapper = () => {
   useHandleLibrary({
     excalidrawAPI,
     adapter: LibraryIndexedDBAdapter,
-    // TODO maybe remove this in several months (shipped: 24-03-11)
     migrationAdapter: LibraryLocalStorageMigrationAdapter,
   });
 
@@ -425,9 +395,7 @@ const ExcalidrawWrapper = () => {
       const debugState = loadSavedDebugState();
 
       if (debugState.enabled && !window.visualDebug) {
-        window.visualDebug = {
-          data: [],
-        };
+        window.visualDebug = { data: [] };
       } else {
         delete window.visualDebug;
       }
@@ -435,9 +403,6 @@ const ExcalidrawWrapper = () => {
     }
   }, [excalidrawAPI]);
 
-  // ---------------------------------------------------------------------------
-  // Hoisted loadImages
-  // ---------------------------------------------------------------------------
   const loadImages = useCallback(
     (data: ResolutionType<typeof initializeScene>, isInitialLoad = false) => {
       if (!data.scene || !excalidrawAPI) {
@@ -471,7 +436,6 @@ const ExcalidrawWrapper = () => {
 
         if (data.isExternalScene) {
           if (fileIds.length) {
-            // Direct Firebase call (not through FileManager), so track manually
             FileStatusStore.updateStatuses(
               fileIds.map((id) => [id, "loading"]),
             );
@@ -509,8 +473,6 @@ const ExcalidrawWrapper = () => {
                 });
               });
           }
-          // on fresh load, clear unused files from IDB (from previous
-          // session)
           LocalData.fileStorage.clearObsoleteFiles({
             currentFileIds: fileIds,
           });
@@ -565,7 +527,6 @@ const ExcalidrawWrapper = () => {
         !document.hidden &&
         ((collabAPI && !collabAPI.isCollaborating()) || isCollabDisabled)
       ) {
-        // don't sync if local state is newer or identical to browser state
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_DATA_STATE)) {
           const localDataState = importFromLocalStorage();
           const username = importUsernameFromLocalStorage();
@@ -591,7 +552,6 @@ const ExcalidrawWrapper = () => {
             elements?.reduce((acc, element) => {
               if (
                 isInitializedImageElement(element) &&
-                // only load and update images that aren't already loaded
                 !currFiles[element.fileId]
               ) {
                 return acc.concat(element.fileId);
@@ -684,8 +644,6 @@ const ExcalidrawWrapper = () => {
       collabAPI.syncElements(elements);
     }
 
-    // this check is redundant, but since this is a hot path, it's best
-    // not to evaludate the nested expression every time
     if (!LocalData.isSavePaused()) {
       LocalData.save(elements, appState, files, () => {
         if (excalidrawAPI) {
@@ -716,7 +674,6 @@ const ExcalidrawWrapper = () => {
       });
     }
 
-    // Render the debug scene if the debug canvas is available
     if (debugCanvasRef.current && excalidrawAPI) {
       debugRenderer(
         debugCanvasRef.current,
@@ -761,11 +718,7 @@ const ExcalidrawWrapper = () => {
     } catch (error: any) {
       if (error.name !== "AbortError") {
         const { width, height } = appState;
-        console.error(error, {
-          width,
-          height,
-          devicePixelRatio: window.devicePixelRatio,
-        });
+        console.error(error, { width, height, devicePixelRatio: window.devicePixelRatio });
         throw new Error(error.message);
       }
     }
@@ -793,9 +746,6 @@ const ExcalidrawWrapper = () => {
     [setShareDialogState],
   );
 
-  // ---------------------------------------------------------------------------
-  // onExport — intercepts file save to wait for pending image loads
-  // ---------------------------------------------------------------------------
   const onExport: Required<ExcalidrawProps>["onExport"] = useCallback(
     async function* () {
       let snapshot = FileStatusStore.getSnapshot();
@@ -806,14 +756,12 @@ const ExcalidrawWrapper = () => {
         return;
       }
 
-      // Yield initial progress
       yield {
         type: "progress",
         progress: (total - pending) / total,
         message: `Loading images (${total - pending}/${total})...`,
       };
 
-      // Wait for all pending images to finish
       while (true) {
         snapshot = await FileStatusStore.pull(snapshot.version);
         const { pending: nowPending, total: nowTotal } =
@@ -827,10 +775,7 @@ const ExcalidrawWrapper = () => {
 
         if (nowPending === 0) {
           await new Promise((r) => setTimeout(r, 500));
-          yield {
-            type: "progress",
-            message: `Preparing export...`,
-          };
+          yield { type: "progress", message: `Preparing export...` };
           return;
         }
       }
@@ -838,14 +783,6 @@ const ExcalidrawWrapper = () => {
     [],
   );
 
-  // const onExport = () => {
-  //   return new Promise((r) => setTimeout(r, 2500));
-  //   // console.log("onExport");
-  // };
-
-  // browsers generally prevent infinite self-embedding, there are
-  // cases where it still happens, and while we disallow self-embedding
-  // by not whitelisting our own origin, this serves as an additional guard
   if (isSelfEmbedding) {
     return (
       <div
@@ -861,45 +798,6 @@ const ExcalidrawWrapper = () => {
       </div>
     );
   }
-
-  const ExcalidrawPlusCommand = {
-    label: "Excalidraw+",
-    category: DEFAULT_CATEGORIES.links,
-    predicate: true,
-    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
-    keywords: ["plus", "cloud", "server"],
-    perform: () => {
-      window.open(
-        `${
-          import.meta.env.VITE_APP_PLUS_LP
-        }/plus?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
-        "_blank",
-      );
-    },
-  };
-  const ExcalidrawPlusAppCommand = {
-    label: "Sign up",
-    category: DEFAULT_CATEGORIES.links,
-    predicate: true,
-    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
-    keywords: [
-      "excalidraw",
-      "plus",
-      "cloud",
-      "server",
-      "signin",
-      "login",
-      "signup",
-    ],
-    perform: () => {
-      window.open(
-        `${
-          import.meta.env.VITE_APP_PLUS_APP
-        }?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
-        "_blank",
-      );
-    },
-  };
 
   return (
     <div
@@ -929,9 +827,7 @@ const ExcalidrawWrapper = () => {
                         name={excalidrawAPI.getName()}
                         onError={(error) => {
                           excalidrawAPI?.updateScene({
-                            appState: {
-                              errorMessage: error.message,
-                            },
+                            appState: { errorMessage: error.message },
                           });
                         }}
                         onSuccess={() => {
@@ -959,12 +855,6 @@ const ExcalidrawWrapper = () => {
 
           return (
             <div className="excalidraw-ui-top-right">
-              {excalidrawAPI?.getEditorInterface().formFactor === "desktop" && (
-                <ExcalidrawPlusPromoBanner
-                  isSignedIn={isExcalidrawPlusSignedUser}
-                />
-              )}
-
               {collabError.message && <CollabError collabError={collabError} />}
               <LiveCollaborationTrigger
                 isCollaborating={isCollaborating}
@@ -1070,35 +960,17 @@ const ExcalidrawWrapper = () => {
             {
               label: t("labels.liveCollaboration"),
               category: DEFAULT_CATEGORIES.app,
-              keywords: [
-                "team",
-                "multiplayer",
-                "share",
-                "public",
-                "session",
-                "invite",
-              ],
+              keywords: ["team", "multiplayer", "share", "public", "session", "invite"],
               icon: usersIcon,
               perform: () => {
-                setShareDialogState({
-                  isOpen: true,
-                  type: "collaborationOnly",
-                });
+                setShareDialogState({ isOpen: true, type: "collaborationOnly" });
               },
             },
             {
               label: t("roomDialog.button_stopSession"),
               category: DEFAULT_CATEGORIES.app,
               predicate: () => !!collabAPI?.isCollaborating(),
-              keywords: [
-                "stop",
-                "session",
-                "end",
-                "leave",
-                "close",
-                "exit",
-                "collaboration",
-              ],
+              keywords: ["stop", "session", "end", "leave", "close", "exit", "collaboration"],
               perform: () => {
                 if (collabAPI) {
                   collabAPI.stopCollaboration();
@@ -1113,17 +985,7 @@ const ExcalidrawWrapper = () => {
               category: DEFAULT_CATEGORIES.app,
               predicate: true,
               icon: share,
-              keywords: [
-                "link",
-                "shareable",
-                "readonly",
-                "export",
-                "publish",
-                "snapshot",
-                "url",
-                "collaborate",
-                "invite",
-              ],
+              keywords: ["link", "shareable", "readonly", "export", "publish", "snapshot", "url", "collaborate", "invite"],
               perform: async () => {
                 setShareDialogState({ isOpen: true, type: "share" });
               },
@@ -1133,21 +995,9 @@ const ExcalidrawWrapper = () => {
               icon: GithubIcon,
               category: DEFAULT_CATEGORIES.links,
               predicate: true,
-              keywords: [
-                "issues",
-                "bugs",
-                "requests",
-                "report",
-                "features",
-                "social",
-                "community",
-              ],
+              keywords: ["issues", "bugs", "requests", "report", "features", "social", "community"],
               perform: () => {
-                window.open(
-                  "https://github.com/excalidraw/excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
+                window.open("https://github.com/excalidraw/excalidraw", "_blank", "noopener noreferrer");
               },
             },
             {
@@ -1157,11 +1007,7 @@ const ExcalidrawWrapper = () => {
               predicate: true,
               keywords: ["twitter", "contact", "social", "community"],
               perform: () => {
-                window.open(
-                  "https://x.com/excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
+                window.open("https://x.com/excalidraw", "_blank", "noopener noreferrer");
               },
             },
             {
@@ -1169,24 +1015,9 @@ const ExcalidrawWrapper = () => {
               category: DEFAULT_CATEGORIES.links,
               predicate: true,
               icon: DiscordIcon,
-              keywords: [
-                "chat",
-                "talk",
-                "contact",
-                "bugs",
-                "requests",
-                "report",
-                "feedback",
-                "suggestions",
-                "social",
-                "community",
-              ],
+              keywords: ["chat", "talk", "contact", "bugs", "requests", "report", "feedback", "suggestions", "social", "community"],
               perform: () => {
-                window.open(
-                  "https://discord.gg/UexuTaE",
-                  "_blank",
-                  "noopener noreferrer",
-                );
+                window.open("https://discord.gg/UexuTaE", "_blank", "noopener noreferrer");
               },
             },
             {
@@ -1196,45 +1027,13 @@ const ExcalidrawWrapper = () => {
               predicate: true,
               keywords: ["features", "tutorials", "howto", "help", "community"],
               perform: () => {
-                window.open(
-                  "https://youtube.com/@excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            ...(isExcalidrawPlusSignedUser
-              ? [
-                  {
-                    ...ExcalidrawPlusAppCommand,
-                    label: "Sign in / Go to Excalidraw+",
-                  },
-                ]
-              : [ExcalidrawPlusCommand, ExcalidrawPlusAppCommand]),
-
-            {
-              label: t("overwriteConfirm.action.excalidrawPlus.button"),
-              category: DEFAULT_CATEGORIES.export,
-              icon: exportToPlus,
-              predicate: true,
-              keywords: ["plus", "export", "save", "backup"],
-              perform: () => {
-                if (excalidrawAPI) {
-                  exportToExcalidrawPlus(
-                    excalidrawAPI.getSceneElements(),
-                    excalidrawAPI.getAppState(),
-                    excalidrawAPI.getFiles(),
-                    excalidrawAPI.getName(),
-                  );
-                }
+                window.open("https://youtube.com/@excalidraw", "_blank", "noopener noreferrer");
               },
             },
             {
               ...CommandPalette.defaultItems.toggleTheme,
               perform: () => {
-                setAppTheme(
-                  editorTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK,
-                );
+                setAppTheme(editorTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK);
               },
             },
             {
@@ -1245,8 +1044,6 @@ const ExcalidrawWrapper = () => {
                 if (pwaEvent) {
                   pwaEvent.prompt();
                   pwaEvent.userChoice.then(() => {
-                    // event cannot be reused, but we'll hopefully
-                    // grab new one as the event should be fired again
                     pwaEvent = null;
                   });
                 }
