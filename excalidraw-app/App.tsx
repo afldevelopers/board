@@ -815,10 +815,7 @@ const ExcalidrawWrapper = () => {
         UIOptions={{
           canvasActions: {
             toggleTheme: true,
-            export: {
-              onExportToBackend,
-             },
-          },
+          },            
         }}
         langCode={langCode}
         renderCustomStats={renderCustomStats}
