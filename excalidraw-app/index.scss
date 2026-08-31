@@ -131,3 +131,9 @@
 .help-icon {
   display: none !important;
 }
+.help-icon,
+.excalidraw-links,
+[aria-label="Shortcuts"],
+.encrypted-icon {
+  display: none !important;
+}
