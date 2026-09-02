@@ -12,49 +12,20 @@
     <meta name="theme-color" content="#121212" />
 
     <!-- Primary Meta Tags -->
-    <meta
-      name="title"
-      content="design with AFLdevelopers"
-    />
-    <meta
-      name="description"
-      content="Excalidraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams that have a hand-drawn feel to them."
-    />
-    <meta name="image" content="https://excalidraw.com/og-image-3.png" />
+    <meta name="title" content="design with AFLdevelopers" />
+    <meta name="description" content="AFLdevelopers collaborative whiteboard" />
+    <meta name="image" content="https://board.afldevelopers.com/logo.png" />
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:site_name" content="Excalidraw" />
+    <meta property="og:site_name" content="AFLdevelopers Board" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://excalidraw.com" />
-    <meta
-      property="og:title"
-      content="Excalidraw — Collaborative whiteboarding made easy"
-    />
-    <meta property="og:image:alt" content="Excalidraw logo" />
-    <meta
-      property="og:description"
-      content="Excalidraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams that have a hand-drawn feel to them."
-    />
-    <meta property="og:image" content="https://excalidraw.com/og-image-3.png" />
+    <meta property="og:url" content="https://board.afldevelopers.com" />
+    <meta property="og:title" content="AFLdevelopers Board" />
+    <meta property="og:image:alt" content="AFLdevelopers Board" />
+    <meta property="og:description" content="AFLdevelopers collaborative whiteboard" />
+    <meta property="og:image" content="https://board.afldevelopers.com/logo.png" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:site" content="@excalidraw" />
-    <meta property="twitter:url" content="https://excalidraw.com" />
-    <meta
-      property="twitter:title"
-      content="Excalidraw — Collaborative whiteboarding made easy"
-    />
-    <meta
-      property="twitter:description"
-      content="Excalidraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams that have a hand-drawn feel to them."
-    />
-    <meta
-      property="twitter:image"
-      content="https://excalidraw.com/og-image-3.png"
-    />
-
-    <link rel="canonical" href="https://excalidraw.com" />
+    <link rel="canonical" href="https://board.afldevelopers.com" />
 
     <!------------------------------------------------------------------------->
     <!--   to minimize white flash on load when user has dark mode enabled   -->
@@ -99,18 +70,10 @@
     <!------------------------------------------------------------------------->
     <% if (typeof PROD != 'undefined' && PROD == true) { %>
     <script>
-      // Redirect Excalidraw+ users which have auto-redirect enabled.
-      //
-      // Redirect only the bare root path, so link/room/library urls are not
-      // redirected.
-      //
-      // Putting into index.html for best performance (can't redirect on server
-      // due to location.hash checks).
       if (
         window.location.pathname === "/" &&
         !window.location.hash &&
         !window.location.search &&
-        // if its present redirect
         document.cookie.includes("excplus-autoredirect=true")
       ) {
         window.location.href = "https://app.excalidraw.com";
@@ -137,7 +100,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 
-    <!-- Excalidraw version -->
+    <!-- version -->
     <meta name="version" content="{version}" />
 
     <% if (typeof VITE_APP_DEV_DISABLE_LIVE_RELOAD != 'undefined' &&
@@ -158,7 +121,6 @@
     </script>
     <% } %>
     <script>
-      // setting this so that libraries installation reuses this window tab.
       window.name = "_excalidraw";
     </script>
 
@@ -217,7 +179,6 @@
     <% if (typeof PROD != 'undefined' && PROD == true) { %>
     <!-- 100% privacy friendly analytics -->
     <script>
-      // need to load this script dynamically bcs. of iframe embed tracking
       var scriptEle = document.createElement("script");
       scriptEle.setAttribute(
         "src",
@@ -226,14 +187,12 @@
       scriptEle.setAttribute("type", "text/javascript");
       scriptEle.setAttribute("defer", true);
       scriptEle.setAttribute("async", true);
-      // if iframe
       if (window.self !== window.top) {
         scriptEle.setAttribute("data-auto-collect", true);
       }
 
       document.body.appendChild(scriptEle);
 
-      // if iframe
       if (window.self !== window.top) {
         scriptEle.addEventListener("load", () => {
           if (window.sa_pageview) {
@@ -246,7 +205,6 @@
         });
       }
     </script>
-    <!-- end LEGACY GOOGLE ANALYTICS -->
     <% } %>
   </body>
 </html>
